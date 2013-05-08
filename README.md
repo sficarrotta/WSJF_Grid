@@ -23,6 +23,16 @@ User Value
 Job Size
 Score
 
+Screencast Demo
+---------------
+
+http://screencast.com/t/aCOOhkpeHdXA
+
+Screenshot
+----------
+
+![Rally Tree Grid Screenshot](https://raw.github.com/RallyCommunity/RallyTreeGrid/master/deploy/WSJF_Grid.png)
+
 ## License
 
 AppTemplate is released under the MIT license.  See the file [LICENSE](https://raw.github.com/RallyApps/AppTemplate/master/LICENSE) for the full text.
