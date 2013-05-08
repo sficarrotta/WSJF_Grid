@@ -115,8 +115,5 @@ Ext.define('CustomApp', {
             this._myGrid.reconfigure(myStore);
         }
     }
-<<<<<<< HEAD
+
 });
-=======
-});
->>>>>>> origin/master
