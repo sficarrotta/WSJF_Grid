@@ -990,8 +990,5 @@ def set_https(uri)
     uri = prefix + uri
   end
   uri
-<<<<<<< HEAD
 end
-=======
-end
->>>>>>> origin/master
+
