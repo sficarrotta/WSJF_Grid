@@ -17,11 +17,11 @@ The app assumes Portfolio Items include the following custom integer fields. Mak
 entered into the Display Name of the integer field. If you change the display name to something else,
 be sure to update the app accordingly.
 
-Time Value
-OERR
-User Value
-Job Size
-Score
+Time Value <br>
+OERR <br>
+User Value <br>
+Job Size <br>
+Score <br>
 
 Screencast Demo
 ---------------
