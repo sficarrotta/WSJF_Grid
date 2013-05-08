@@ -31,7 +31,7 @@ http://screencast.com/t/aCOOhkpeHdXA
 Screenshot
 ----------
 
-(https://github.com/sficarrotta/WSJF_Grid/raw/master/deploy/WSJF_Grid.png)
+https://github.com/sficarrotta/WSJF_Grid/raw/master/deploy/WSJF_Grid.png
 
 ## License
 
