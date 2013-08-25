@@ -17,6 +17,13 @@ The app assumes Portfolio Items include the following custom integer fields. Mak
 entered into the Display Name of the integer field. If you change the display name to something else,
 be sure to update the app accordingly.
 
+Caveat:
+The App.html file has an altered script tag, so if you regenerate the html file you will likely need to hand-modfy
+the script tag: 
+<script type="text/javascript" src="/apps/2.0p5/sdk.js?wsapiVersion=1.43"></script>
+The wsapi version is included to allow access to new methods. Using sdk 2.0rc1 breaks cell editing, so until I
+figure that one out this is the workaround.
+
 Time Value <br>
 OERR <br>
 User Value <br>
