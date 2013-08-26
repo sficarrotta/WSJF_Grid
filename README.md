@@ -19,8 +19,8 @@ be sure to update the app accordingly.
 
 Caveat:
 The App.html file has an altered script tag, so if you regenerate the html file you will likely need to hand-modfy
-the script tag: 
-<script type="text/javascript" src="/apps/2.0p5/sdk.js?wsapiVersion=1.43"></script>
+the script tag. Change the src parameter so: src="/apps/2.0p5/sdk.js?wsapiVersion=1.43"
+
 The wsapi version is included to allow access to new methods. Using sdk 2.0rc1 breaks cell editing, so until I
 figure that one out this is the workaround.
 
