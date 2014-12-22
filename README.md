@@ -1,5 +1,11 @@
 WSJF_Grid
 =========================
+## Attention: New version available based on sdk 2.0rc2 
+Find it here: https://github.com/sficarrotta/WSJF_V3
+This version no longer requires custom fields but uses Rally OTB fields. If you are working on an
+on-premise version of Rally please ensusre that these new Rally fields are available as well as the
+2.0rc2 version of the sdk. Please note that there is a know bug with this version that will sometimes
+turn an edited cell red. To fix it, just click on cell again, then change focus from the edited cell.
 
 ## Overview
 Weighted Shortest Job First Grid
