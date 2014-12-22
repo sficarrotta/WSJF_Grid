@@ -8,12 +8,20 @@ on-premise version of Rally please ensusre that these new Rally fields are avail
 turn an edited cell red. To fix it, just click on cell again, then change focus from the edited cell.
 
 ## Overview
-Weighted Shortest Job First Grid
-This app displays a grid that shows the values used to calculate the WSJF score, 
-and then calculate the score. The values in the grid are editable, but the score is not as it is 
-calculated based on the values. The columns are sortable, so for example if you want to sort by Score, just
-click on the "Score" column.
+Weighted Shortest Job First Grid This app displays a grid that shows the values
+used to calculate the WSJF score, and then calculate the score. The values in 
+the grid are editable, but the score is not as it is calculated based on the
+values. The columns are sortable, so for example if you want to sort by Score, 
+just click on the "Score" column.
 
+The Details: The app has a PI Type selection field and a Release Timebox. Note 
+that the Release Timebox is only used when the lowest level PI Type is selected,
+e.g. "Feature". Project Scope is obeyed.
+The WSJF score calculation is 
+( Time Criticality + RR/OE Value + User/Business Value)/ Job Size 
+The score is an integer.
+
+## License
 
 The Details:
 The app is designed to work with Portfolio Items of type "Feature". No other filtering is handled,
@@ -39,6 +47,6 @@ Screenshot
 
 ![Rally Tree Grid Screenshot](https://raw.github.com/RallyCommunity/WSJF_Grid/master/deploy/WSJF_Grid.png)
 
-## License
+##Documentation for SDK
 
-AppTemplate is released under the MIT license.  See the file [LICENSE](https://raw.github.com/RallyApps/AppTemplate/master/LICENSE) for the full text.
+You can find the documentation on our help [site.](https://help.rallydev.com/apps/2.0rc2/doc/)
