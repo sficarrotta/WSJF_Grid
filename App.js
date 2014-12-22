@@ -56,7 +56,7 @@ Ext.define('CustomApp', {
                         },
                         fetch: ["Name", "FormattedID", "Release", 
                             "TimeCriticality", "RROEValue", "UserBusinessValue",
-                            "ValueScore", "JobSize"]
+                            "WSJFScore", "JobSize"]
                     });
                 }
                 else { // grid exists, reset the model to the correct PI type
@@ -104,11 +104,11 @@ Ext.define('CustomApp', {
             var timeValue = feature.data.TimeCriticality;
             var OERR = feature.data.RROEValue;
             var userValue = feature.data.UserBusinessValue;
-            var oldScore = feature.data.ValueScore;
+            var oldScore = feature.data.WSJFScore;
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score = Math.floor(((userValue + timeValue + OERR ) / jobSize) + 0.5);
                 if (oldScore !== score) { // only update if score changed
-                    feature.set('ValueScore', score); // set score value in db
+                    feature.set('WSJFScore', score); // set score value in db
                 }
             }
         });
@@ -137,8 +137,8 @@ Ext.define('CustomApp', {
                 }, 
                 "TimeCriticality", "RROEValue", "UserBusinessValue", "JobSize", 
                 {
-                    text: "Score",
-                    dataIndex: "ValueScore",
+                    text: "WSJF Score",
+                    dataIndex: "WSJFScore",
                     editor: null
                 }
             ],
