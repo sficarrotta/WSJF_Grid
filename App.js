@@ -1,11 +1,14 @@
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
+    
     //items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc2/doc/">App SDK 2.0rc2 Docs</a>'},
     launch: function() {
         this.releaseCombobox = this.add({
             xtype: "rallyreleasecombobox",
             allowNoEntry: true,
+            defaultToCurrentTimebox: false,
+            defaultSelectionPosition: 'first',
             listeners: {
                 ready: this._addPICombobox,
                 change: this._onReleaseComboboxChanged,
@@ -15,7 +18,6 @@ Ext.define('CustomApp', {
     }, //end launch
     
     _addPICombobox: function() {
-        console.log("PI Combobox added");
         this.piCombobox = this.add({
             xtype: "rallyportfolioitemtypecombobox",
             defaultSelectionPosition : 'last',
@@ -34,7 +36,6 @@ Ext.define('CustomApp', {
             // Only use the release filter if the PI is the lowest level
             query = this.releaseCombobox.getQueryFromSelected();
         }
-        console.log("query: ", query);
     
         Rally.data.ModelFactory.getModel({
             type: selectedType.get('TypePath'),
@@ -47,6 +48,7 @@ Ext.define('CustomApp', {
                         remoteSort: false,
                         listeners: {
                             load: function(store, records, success) {
+                                this._calculateScore(records);
                                 this._updateGrid(store);
                             },
                             update: function(store, rec, modified, opts) {
@@ -56,7 +58,7 @@ Ext.define('CustomApp', {
                         },
                         fetch: ["Name", "FormattedID", "Release", 
                             "TimeCriticality", "RROEValue", "UserBusinessValue",
-                            "WSJFScore", "JobSize"]
+                            "WSJFScore", "JobSize", "Rank"]
                     });
                 }
                 else { // grid exists, reset the model to the correct PI type
@@ -105,10 +107,22 @@ Ext.define('CustomApp', {
             var OERR = feature.data.RROEValue;
             var userValue = feature.data.UserBusinessValue;
             var oldScore = feature.data.WSJFScore;
+            console.log("jobsize: ", jobSize);
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
-                var score = Math.floor(((userValue + timeValue + OERR ) / jobSize) + 0.5);
+                var score;
+                var defaultToIntegerScore = true;
+    
+                if( defaultToIntegerScore ) {
+                    score = Math.floor(((userValue + timeValue + OERR ) / jobSize) + 0.5);
+                }
+                else {
+                    score = Math.floor(((userValue + timeValue + OERR ) / jobSize) * 100)/100;
+                }
+                console.log("oldScore, newScore: ", feature.data.Name, oldScore, score);
                 if (oldScore !== score) { // only update if score changed
                     feature.set('WSJFScore', score); // set score value in db
+                    console.log("setting score");
+                    //feature.save();
                 }
             }
         });
@@ -121,6 +135,9 @@ Ext.define('CustomApp', {
             title: "Feature Scoring Grid",
             height: "98%",
             store: myStore,
+            enableBulkEdit: true,
+            enableRanking: true,
+            defaultSortToRank: true,
             selType: "cellmodel",
             columnCfgs: [
                 {
@@ -135,7 +152,7 @@ Ext.define('CustomApp', {
                     dataIndex: "Name",
                     flex: 2
                 }, 
-                "TimeCriticality", "RROEValue", "UserBusinessValue", "JobSize", 
+                "Rank", "TimeCriticality", "RROEValue", "UserBusinessValue", "JobSize", 
                 {
                     text: "WSJF Score",
                     dataIndex: "WSJFScore",
