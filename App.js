@@ -110,7 +110,7 @@ Ext.define('CustomApp', {
             console.log("jobsize: ", jobSize);
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score;
-                var defaultToIntegerScore = false;
+                var defaultToIntegerScore = true;
     
                 if( defaultToIntegerScore ) {
                     score = Math.floor(((userValue + timeValue + OERR ) / jobSize) + 0.5);
