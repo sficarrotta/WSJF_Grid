@@ -116,7 +116,7 @@ Ext.define('CustomApp', {
                     score = Math.floor(((userValue + timeValue + OERR ) / jobSize) + 0.5);
                 }
                 else {
-                    score = (userValue + timeValue + OERR ) / jobSize;
+                    score = Math.floor(((userValue + timeValue + OERR ) / jobSize) * 100)/100;
                 }
                 console.log("oldScore, newScore: ", feature.data.Name, oldScore, score);
                 if (oldScore !== score) { // only update if score changed
