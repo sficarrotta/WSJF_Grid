@@ -1,26 +1,64 @@
+var Ext = window.Ext4 || window.Ext;
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
-    
     //items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc2/doc/">App SDK 2.0rc2 Docs</a>'},
     launch: function() {
         this.releaseCombobox = this.add({
             xtype: "rallyreleasecombobox",
             allowNoEntry: true,
+            editable: true,
+            //stateful: true,
+            //stateId: this.getContext().getScopedStateID('release'),
+            context: this.getContext(),
             defaultToCurrentTimebox: false,
-            defaultSelectionPosition: 'first',
             listeners: {
-                ready: this._addPICombobox,
+                ready: this._addReleaseCombobox,
                 change: this._onReleaseComboboxChanged,
                 scope: this
             }
         });
     }, //end launch
     
+    _addReleaseCombobox: function() {
+        console.log("Adding Release Combobox");
+        var rcb = this.releaseCombobox.getStore();
+        if (rcb) {
+            rcb.add({Name: "No Filter"});
+        }
+        console.log("added rel combo box");
+        this._addPICombobox();
+    },
+    
+    _onReleaseComboboxChanged: function() {
+        this._onPICombobox();
+       /* var releaseFilter = this.releaseCombobox.getQueryFromSelected();
+        var selectedRelease = this.releaseCombobox.getRecord();
+        if( selectedRelease ) {
+            if( selectedRelease.data.Name == "No Filter" ) {
+                releaseFilter = [];
+            }
+        }
+ 
+        // if we don't yet have a PI combo box or if this is anything other than
+        // the lowest level PI, bail
+        if ( this.piCombobox ) {
+            console.log("resetting filter");
+            if (this.piCombobox.getRecord().get('Ordinal') === 0)
+            {
+                if(this._myGrid ) {
+                    var store = this._myGrid.getStore();
+                    store.clearFilter(!0);
+                    store.filter(releaseFilter);
+                }
+            }
+        }*/
+    },
+    
     _addPICombobox: function() {
         this.piCombobox = this.add({
             xtype: "rallyportfolioitemtypecombobox",
-            defaultSelectionPosition : 'last',
+            //defaultSelectionPosition : 'last',
             listeners: {
                 ready: this._onPICombobox,
                 change: this._onPICombobox,
@@ -34,7 +72,20 @@ Ext.define('CustomApp', {
         var query = [];
         if (this.piCombobox.getRecord().get('Ordinal') === 0) {
             // Only use the release filter if the PI is the lowest level
-            query = this.releaseCombobox.getQueryFromSelected();
+            // and then ensure it is enabled
+            this.releaseCombobox.enable();
+            console.log("ModelFactory: getting release filter");
+            var selectedRelease = this.releaseCombobox.getRecord();
+            if( selectedRelease ) {
+                if( selectedRelease.data.Name != "No Filter" ) {
+                    console.log("selected release: ", selectedRelease.data.Name);
+                    query = this.releaseCombobox.getQueryFromSelected();
+                } 
+            } else { // catch "Unscheduled"
+                query = this.releaseCombobox.getQueryFromSelected();
+            }
+        } else { // disable the ReleaseComboBox if Feature not selected
+           this.releaseCombobox.disable();
         }
     
         Rally.data.ModelFactory.getModel({
@@ -58,7 +109,7 @@ Ext.define('CustomApp', {
                         },
                         fetch: ["Name", "FormattedID", "Release", 
                             "TimeCriticality", "RROEValue", "UserBusinessValue",
-                            "WSJFScore", "JobSize", "Rank"]
+                            "WSJFScore", "JobSize"]
                     });
                 }
                 else { // grid exists, reset the model to the correct PI type
@@ -83,22 +134,6 @@ Ext.define('CustomApp', {
         });
     },
     
-    _onReleaseComboboxChanged: function() {
-        // if we don't yet have a PI combo box or if this is anything other than
-        // the lowest level PI, bail
-        if ( this.piCombobox ) {
-            if (this.piCombobox.getRecord().get('Ordinal') === 0)
-            {
-                if(this._myGrid ) {
-                    var store = this._myGrid.getStore();
-                    store.clearFilter(!0), store.filter(this.releaseCombobox.getQueryFromSelected());
-                }
-                else { //grid does not yet exist - can this happen?
-                }
-            }
-        }
-    },
-    
     _calculateScore: function(records) {
         Ext.Array.each(records, function(feature) {
             //console.log("feature", feature.data);
@@ -107,7 +142,7 @@ Ext.define('CustomApp', {
             var OERR = feature.data.RROEValue;
             var userValue = feature.data.UserBusinessValue;
             var oldScore = feature.data.WSJFScore;
-            console.log("jobsize: ", jobSize);
+            //console.log("jobsize: ", jobSize);
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score;
                 var defaultToIntegerScore = true;
@@ -118,10 +153,10 @@ Ext.define('CustomApp', {
                 else {
                     score = Math.floor(((userValue + timeValue + OERR ) / jobSize) * 100)/100;
                 }
-                console.log("oldScore, newScore: ", feature.data.Name, oldScore, score);
+                //console.log("oldScore, newScore: ", feature.data.Name, oldScore, score);
                 if (oldScore !== score) { // only update if score changed
                     feature.set('WSJFScore', score); // set score value in db
-                    console.log("setting score");
+                    //console.log("setting score");
                     //feature.save();
                 }
             }
@@ -129,9 +164,9 @@ Ext.define('CustomApp', {
     },
     
     _createGrid: function(myStore) {
-        console.log("Creating Grid");
+        //console.log("Creating Grid");
         this._myGrid = Ext.create("Rally.ui.grid.Grid", {
-            xtype: "rallygrid",
+            xtype: "rallygridboard",
             title: "Feature Scoring Grid",
             height: "98%",
             store: myStore,
@@ -152,7 +187,7 @@ Ext.define('CustomApp', {
                     dataIndex: "Name",
                     flex: 2
                 }, 
-                "Rank", "TimeCriticality", "RROEValue", "UserBusinessValue", "JobSize", 
+                "TimeCriticality", "RROEValue", "UserBusinessValue", "JobSize", 
                 {
                     text: "WSJF Score",
                     dataIndex: "WSJFScore",
