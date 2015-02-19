@@ -13,55 +13,50 @@ Ext.define('CustomApp', {
     componentCls: 'app',
     //items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc2/doc/">App SDK 2.0rc2 Docs</a>'},
     launch: function() {
+        var context = this.getContext();
         this.releaseCombobox = this.add({
-            xtype: "rallyreleasecombobox",
+            xtype: 'rallyreleasecombobox',
+            stateful: true,
+            stateId: this.getContext().getScopedStateId('release'),
             allowNoEntry: true,
-            editable: true,
-            //stateful: true,
-            //stateId: this.getContext().getScopedStateID('release'),
+            noEntryValue: '/release/-1',
+            clearText: '-- Clear Filter --',
+            allowClear: true,
+            emptyText: 'Filter by release...',
             context: this.getContext(),
             defaultToCurrentTimebox: false,
+            defaultSelectionPosition: null,
             listeners: {
-                ready: this._addReleaseCombobox,
-                change: this._onReleaseComboboxChanged,
+                ready: this._onReleaseAvailable,
+                select: this._onReleaseChanged,
                 scope: this
             }
         });
     }, //end launch
     
-    _addReleaseCombobox: function() {
+    _onReleaseAvailable: function(combo) {
+        combo.getStore().getAt(0).set('formattedName', '-- Clear Filter --');
         console.log("Adding Release Combobox");
-        var rcb = this.releaseCombobox.getStore();
-        if (rcb) {
-            rcb.add({Name: "No Filter"});
-        }
-        console.log("added rel combo box");
         this._addPICombobox();
     },
     
-    _onReleaseComboboxChanged: function() {
-        this._onPICombobox();
-       /* var releaseFilter = this.releaseCombobox.getQueryFromSelected();
-        var selectedRelease = this.releaseCombobox.getRecord();
-        if( selectedRelease ) {
-            if( selectedRelease.data.Name == "No Filter" ) {
-                releaseFilter = [];
-            }
-        }
- 
+    _onReleaseChanged: function() {
         // if we don't yet have a PI combo box or if this is anything other than
         // the lowest level PI, bail
         if ( this.piCombobox ) {
             console.log("resetting filter");
             if (this.piCombobox.getRecord().get('Ordinal') === 0)
             {
-                if(this._myGrid ) {
-                    var store = this._myGrid.getStore();
-                    store.clearFilter(!0);
-                    store.filter(releaseFilter);
+                var grid = this.down('rallygrid'),
+                store = grid.getStore(),
+                filter = this._getReleaseFilter();
+        
+                store.clearFilter(filter.length > 0);
+                if(filter.length) {
+                  store.filter(this._getReleaseFilter());
                 }
             }
-        }*/
+        }
     },
     
     _addPICombobox: function() {
@@ -70,77 +65,75 @@ Ext.define('CustomApp', {
             //defaultSelectionPosition : 'last',
             listeners: {
                 ready: this._onPICombobox,
-                change: this._onPICombobox,
+                select: this._onPICombobox,
                 scope: this
             }
         });
     },
 
     _onPICombobox: function() {
-        var selectedType = this.piCombobox.getRecord();
-        var query = [];
-        if (this.piCombobox.getRecord().get('Ordinal') === 0) {
-            // Only use the release filter if the PI is the lowest level
-            // and then ensure it is enabled
-            this.releaseCombobox.enable();
-            console.log("ModelFactory: getting release filter");
-            var selectedRelease = this.releaseCombobox.getRecord();
-            if( selectedRelease ) {
-                if( selectedRelease.data.Name != "No Filter" ) {
-                    console.log("selected release: ", selectedRelease.data.Name);
-                    query = this.releaseCombobox.getQueryFromSelected();
-                } 
-            } else { // catch "Unscheduled"
-                query = this.releaseCombobox.getQueryFromSelected();
+        if( this.piCombobox ) {
+            var selectedType = this.piCombobox.getRecord();
+            if (this.piCombobox.getRecord().get('Ordinal') === 0) {
+                // Only use the release filter if the PI is the lowest level
+                // and then ensure it is enabled
+                this.releaseCombobox.enable();
+            } else { // disable the ReleaseComboBox if Feature not selected
+               this.releaseCombobox.disable();
             }
-        } else { // disable the ReleaseComboBox if Feature not selected
-           this.releaseCombobox.disable();
-        }
-    
-        Rally.data.ModelFactory.getModel({
-            type: selectedType.get('TypePath'),
-            success: function(model){
-                if (this._myGrid === undefined) {
-                    Ext.create("Rally.data.WsapiDataStore", {
-                        model: model,
-                        autoLoad: true,
-                        filters: query,
-                        remoteSort: false,
-                        listeners: {
-                            load: function(store, records, success) {
-                                this._calculateScore(records);
-                                this._updateGrid(store);
+        
+            Rally.data.ModelFactory.getModel({
+                type: selectedType.get('TypePath'),
+                success: function(model){
+                    if (this._myGrid === undefined) {
+                        Ext.create("Rally.data.WsapiDataStore", {
+                            model: model,
+                            autoLoad: true,
+                            filters: this._getReleaseFilter(),
+                            remoteSort: false,
+                            listeners: {
+                                load: function(store, records, success) {
+                                    this._calculateScore(records);
+                                    this._updateGrid(store);
+                                },
+                                update: function(store, rec, modified, opts) {
+                                    this._calculateScore([rec]);
+                                },
+                                scope: this
                             },
-                            update: function(store, rec, modified, opts) {
-                                this._calculateScore([rec]);
-                            },
-                            scope: this
-                        },
-                        fetch: ["Name", "FormattedID", "Release", 
-                            "TimeCriticality", "RROEValue", "UserBusinessValue",
-                            "WSJFScore", "JobSize"]
-                    });
-                }
-                else { // grid exists, reset the model to the correct PI type
-                    this._myGrid.reconfigureWithModel(model);
+                            fetch: ["Name", "FormattedID", "Release", 
+                                "TimeCriticality", "RROEValue", "UserBusinessValue",
+                                "WSJFScore", "JobSize"]
+                        });
+                    }
+                    else { // grid exists, reset the model to the correct PI type
+                        this._myGrid.reconfigureWithModel(model);
+                        
+                        // clear and re-apply filter since reconfiguring model 
+                        // doesn't do this
+                        var store = this._myGrid.getStore();
+                         if (this.piCombobox.getRecord().get('Ordinal') === 0) {
+                            var filter = this._getReleaseFilter();
                     
-                    // clear and re-apply filter since reconfiguring model 
-                    // doesn't do this
-                    var store = this._myGrid.getStore();
-                    store.clearFilter(!0), store.filter(query);
-                   
-                    // re-apply grid update listeners
-                    var that = this;
-                    store.addListener('update', function(store, rec, modified, opts) {
-                        that._calculateScore([rec]);
-                    });
-                    store.addListener('load', function(store, records, modified, opts) {
-                        that._calculateScore(records); that._updateGrid(store);
-                    });
-                }
-            },
-            scope: this
-        });
+                            store.clearFilter(filter.length > 0);
+                            if(filter.length) {
+                              store.filter(this._getReleaseFilter());
+                            }
+                        }
+                       
+                        // re-apply grid update listeners
+                        var that = this;
+                        store.addListener('update', function(store, rec, modified, opts) {
+                            that._calculateScore([rec]);
+                        });
+                        store.addListener('load', function(store, records, modified, opts) {
+                            that._calculateScore(records); that._updateGrid(store);
+                        });
+                    }
+                },
+                scope: this
+            });
+        }
     },
     
     _calculateScore: function(records) {
@@ -173,7 +166,6 @@ Ext.define('CustomApp', {
     },
     
     _createGrid: function(myStore) {
-        //console.log("Creating Grid");
         this._myGrid = Ext.create("Rally.ui.grid.Grid", {
             xtype: "rallygridboard",
             title: "Feature Scoring Grid",
@@ -214,6 +206,12 @@ Ext.define('CustomApp', {
         else {
             this._myGrid.reconfigure(myStore);
         }
+    },
+    
+    _getReleaseFilter: function() {
+        var combo = this.down('rallyreleasecombobox');
+        return combo.getValue() ?
+          [combo.getQueryFromSelected()] : [];
     }
 });
 
