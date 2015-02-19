@@ -19,9 +19,7 @@ that the Release Timebox is only used when the lowest level PI Type is selected,
 e.g. "Feature". Project Scope is obeyed.
 The WSJF score calculation is 
 ( Time Criticality + RR/OE Value + User/Business Value)/ Job Size 
-By default the score is an integer. If you want to have the score be a float, 
-then look for this line in the code: var defaultToIntegerScore = false;
-Change false to true and it will display two decimal places (scale of two). 
+
 
 ## License
 
