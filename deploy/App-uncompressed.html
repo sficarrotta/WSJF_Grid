@@ -11,16 +11,15 @@
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
-    //items:{ html:'<a href="https://help.rallydev.com/apps/2.0rc2/doc/">App SDK 2.0rc2 Docs</a>'},
+    //items:{ html:'<a href="https://help.rallydev.com/apps/2.0/doc/">App SDK 2.0 Docs</a>'},
     launch: function() {
-        var context = this.getContext();
         this.releaseCombobox = this.add({
             xtype: 'rallyreleasecombobox',
             stateful: true,
             stateId: this.getContext().getScopedStateId('release'),
             allowNoEntry: true,
             noEntryValue: '/release/-1',
-            clearText: '-- Clear Filter --',
+            clearText: '-- Ignore Release Filter --',
             allowClear: true,
             emptyText: 'Filter by release...',
             context: this.getContext(),
@@ -35,8 +34,7 @@ Ext.define('CustomApp', {
     }, //end launch
     
     _onReleaseAvailable: function(combo) {
-        combo.getStore().getAt(0).set('formattedName', '-- Clear Filter --');
-        console.log("Adding Release Combobox");
+        combo.getStore().getAt(0).set('formattedName', '-- Ignore Release Filter --');
         this._addPICombobox();
     },
     
@@ -62,10 +60,21 @@ Ext.define('CustomApp', {
     _addPICombobox: function() {
         this.piCombobox = this.add({
             xtype: "rallyportfolioitemtypecombobox",
-            //defaultSelectionPosition : 'last',
             listeners: {
                 ready: this._onPICombobox,
                 select: this._onPICombobox,
+                scope: this
+            }
+        });
+        this._checkbox = this.add({
+            xtype: 'rallycheckboxfield',
+            fieldLabel: 'Show Values After the Decimal',
+            stateful: true,
+            stateId: this.getContext().getScopedStateId('mycheckbox'),
+            stateEvents: ['change'],
+            value: false,
+            listeners: {
+                change: this._onPICombobox,
                 scope: this
             }
         });
@@ -137,6 +146,7 @@ Ext.define('CustomApp', {
     },
     
     _calculateScore: function(records) {
+        var that = this;
         Ext.Array.each(records, function(feature) {
             //console.log("feature", feature.data);
             var jobSize = feature.data.JobSize;
@@ -144,22 +154,23 @@ Ext.define('CustomApp', {
             var OERR = feature.data.RROEValue;
             var userValue = feature.data.UserBusinessValue;
             var oldScore = feature.data.WSJFScore;
-            //console.log("jobsize: ", jobSize);
+            var isChecked = false;
+            if( that._checkbox) {
+                isChecked = that._checkbox.getValue();
+            }
+            
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score;
-                var defaultToIntegerScore = true;
     
-                if( defaultToIntegerScore ) {
+                if( !isChecked ) {
                     score = Math.floor(((userValue + timeValue + OERR ) / jobSize) + 0.5);
                 }
                 else {
                     score = Math.floor(((userValue + timeValue + OERR ) / jobSize) * 100)/100;
                 }
-                //console.log("oldScore, newScore: ", feature.data.Name, oldScore, score);
+
                 if (oldScore !== score) { // only update if score changed
                     feature.set('WSJFScore', score); // set score value in db
-                    //console.log("setting score");
-                    //feature.save();
                 }
             }
         });
