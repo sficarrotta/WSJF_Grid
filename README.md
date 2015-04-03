@@ -2,6 +2,7 @@ WSJF_Grid
 =========================
 
 ## Overview
+SDK V2.0
 Weighted Shortest Job First Grid This app displays a grid that shows the values
 used to calculate the WSJF score, and then calculate the score. The values in 
 the grid are editable, but the score is not as it is calculated based on the
@@ -13,6 +14,9 @@ that the Release Timebox is only used when the lowest level PI Type is selected,
 e.g. "Feature". Project Scope is obeyed.
 The WSJF score calculation is 
 ( Time Criticality + RR/OE Value + User/Business Value)/ Job Size 
+
+## Screen Shot
+![WSJF Grid](https://raw.github.com/sficarrotta/WSJF_Grid/master/WSJFL_Grid.png)
 
 
 ## License
