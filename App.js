@@ -4,9 +4,17 @@ Ext.define('CustomApp', {
     componentCls: 'app',
     //items:{ html:'<a href="https://help.rallydev.com/apps/2.0/doc/">App SDK 2.0 Docs</a>'},
     launch: function() {
-        this.releaseCombobox = this.add({
+        this._boxcontainer = Ext.create('Ext.form.Panel', {
+            title: 'Grid Filters',
+            layout: { type: 'hbox'},
+            width: '95%',
+            bodyPadding: 10
+        });
+        
+        this._releaseCombobox = this.add({
             xtype: 'rallyreleasecombobox',
             stateful: true,
+            padding: 5,
             stateId: this.getContext().getScopedStateId('release'),
             allowNoEntry: true,
             noEntryValue: '/release/-1',
@@ -26,6 +34,7 @@ Ext.define('CustomApp', {
     
     _onReleaseAvailable: function(combo) {
         combo.getStore().getAt(0).set('formattedName', '-- Ignore Release Filter --');
+        this._boxcontainer.add(this._releaseCombobox); //new
         this._addPICombobox();
     },
     
@@ -51,15 +60,19 @@ Ext.define('CustomApp', {
     _addPICombobox: function() {
         this.piCombobox = this.add({
             xtype: "rallyportfolioitemtypecombobox",
+            padding: 5,
             listeners: {
                 ready: this._onPICombobox,
                 select: this._onPICombobox,
                 scope: this
             }
         });
+        this._boxcontainer.add(this.piCombobox); //new
         this._checkbox = this.add({
             xtype: 'rallycheckboxfield',
             fieldLabel: 'Show Values After the Decimal',
+            labelWidth: 200,
+            padding: '5, 5, 5, 10',
             stateful: true,
             stateId: this.getContext().getScopedStateId('mycheckbox'),
             stateEvents: ['change'],
@@ -69,6 +82,8 @@ Ext.define('CustomApp', {
                 scope: this
             }
         });
+        this._boxcontainer.add(this._checkbox);
+        this.add(this._boxcontainer);
     },
 
     _onPICombobox: function() {
@@ -77,9 +92,9 @@ Ext.define('CustomApp', {
             if (this.piCombobox.getRecord().get('Ordinal') === 0) {
                 // Only use the release filter if the PI is the lowest level
                 // and then ensure it is enabled
-                this.releaseCombobox.enable();
+                this._releaseCombobox.enable();
             } else { // disable the ReleaseComboBox if Feature not selected
-               this.releaseCombobox.disable();
+               this._releaseCombobox.disable();
             }
         
             Rally.data.ModelFactory.getModel({
@@ -172,6 +187,7 @@ Ext.define('CustomApp', {
             xtype: "rallygridboard",
             title: "Feature Scoring Grid",
             height: "98%",
+            width: "98%",
             store: myStore,
             enableBulkEdit: true,
             enableRanking: true,
