@@ -50,9 +50,9 @@ Ext.define('CustomApp', {
     _onReleaseChanged: function() {
         // if we don't yet have a PI combo box or if this is anything other than
         // the lowest level PI, bail
-        if ( this.piCombobox ) {
+        if ( this._piCombobox ) {
             console.log("resetting filter");
-            if (this.piCombobox.getRecord().get('Ordinal') === 0)
+            if (this._piCombobox.getRecord().get('Ordinal') === 0)
             {
                 var grid = this.down('rallygrid'),
                 store = grid.getStore(),
@@ -67,7 +67,7 @@ Ext.define('CustomApp', {
     },
     
     _addPICombobox: function() {
-        this.piCombobox = this.add({
+        this._piCombobox = this.add({
             xtype: "rallyportfolioitemtypecombobox",
             padding: 5,
             listeners: {
@@ -76,7 +76,7 @@ Ext.define('CustomApp', {
                 scope: this
             }
         });
-        this._boxcontainer.add(this.piCombobox); //new
+        this._boxcontainer.add(this._piCombobox); //new
         this._checkbox = this.add({
             xtype: 'rallycheckboxfield',
             fieldLabel: 'Show Values After the Decimal',
@@ -96,9 +96,9 @@ Ext.define('CustomApp', {
     },
 
     _onPICombobox: function() {
-        if( this.piCombobox ) {
-            var selectedType = this.piCombobox.getRecord();
-            if (this.piCombobox.getRecord().get('Ordinal') === 0) {
+        if( this._piCombobox ) {
+            var selectedType = this._piCombobox.getRecord();
+            if (this._piCombobox.getRecord().get('Ordinal') === 0) {
                 // Only use the release filter if the PI is the lowest level
                 // and then ensure it is enabled
                 this._releaseCombobox.enable();
@@ -136,7 +136,7 @@ Ext.define('CustomApp', {
                         // clear and re-apply filter since reconfiguring model 
                         // doesn't do this
                         var store = this._myGrid.getStore();
-                         if (this.piCombobox.getRecord().get('Ordinal') === 0) {
+                         if (this._piCombobox.getRecord().get('Ordinal') === 0) {
                             var filter = this._getReleaseFilter();
                     
                             store.clearFilter(filter.length > 0);
