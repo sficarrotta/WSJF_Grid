@@ -16,7 +16,7 @@ The WSJF score calculation is
 ( Time Criticality + RR/OE Value + User/Business Value)/ Job Size 
 
 ## Screen Shot
-![WSJF Grid](https://raw.github.com/sficarrotta/WSJF_Grid/master/WSJFL_Grid.png)
+![WSJF Grid](https://github.com/sficarrotta/WSJF_Grid/blob/master/WSJF_Grid.png)
 
 
 ## License
