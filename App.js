@@ -1,6 +1,11 @@
 var Ext = window.Ext4 || window.Ext;
+var app = null;
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
+    uses: [
+        'Ext.ux.exporter.Exporter'
+    ],
+
     componentCls: 'app',
     //items:{ html:'<a href="https://help.rallydev.com/apps/2.0/doc/">App SDK 2.0 Docs</a>'},
     launch: function() {
@@ -58,6 +63,7 @@ Ext.define('CustomApp', {
     },
     
     _addPICombobox: function() {
+        var app = this;
         this._piCombobox = this.add({
             xtype: "rallyportfolioitemtypecombobox",
             padding: 5,
@@ -82,7 +88,20 @@ Ext.define('CustomApp', {
                 scope: this
             }
         });
+         this._myButton = this.add({
+            xtype : 'rallybutton',
+            height : 20,
+            text : 'Export to CSV',
+            listeners : {
+                scope :this,
+                click : function() {
+                    var exporter = Ext.create("GridExporter",{});
+                    exporter.exportGrid(app._myGrid);
+                }
+            }
+        });
         this._boxcontainer.add(this._checkbox);
+        this._boxcontainer.add(this._myButton);
         this.add(this._boxcontainer);
     },
 
