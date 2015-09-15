@@ -1,197 +1,154 @@
 var Ext = window.Ext4 || window.Ext;
-var app = null;
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
-    uses: [
-        'Ext.ux.exporter.Exporter'
-    ],
-
     componentCls: 'app',
-    //items:{ html:'<a href="https://help.rallydev.com/apps/2.0/doc/">App SDK 2.0 Docs</a>'},
     launch: function() {
-        this._boxcontainer = Ext.create('Ext.form.Panel', {
-            title: 'Grid Filters',
-            layout: { type: 'hbox'},
-            width: '95%',
-            bodyPadding: 10
-        });
+        var that = this;
+
+        // console.log(that.getSettings());
+        that.TimeCriticalityField = that.getSetting('TimeCriticalityField');
+        that.RROEValueField = that.getSetting('RROEValueField');
+        that.UserBusinessValueField = that.getSetting('UserBusinessValueField');
+        that.WSJFScoreField = that.getSetting('WSJFScoreField');
+        that.JobSizeField = that.getSetting('JobSizeField');
+        that.ShowValuesAfterDecimal = that.getSettingsFields('ShowValuesAfterDecimal');
         
-        this._releaseCombobox = this.add({
-            xtype: 'rallyreleasecombobox',
-            stateful: true,
-            padding: 5,
-            stateId: this.getContext().getScopedStateId('release'),
-            allowNoEntry: true,
-            noEntryValue: '/release/-1',
-            clearText: '-- Ignore Release Filter --',
-            allowClear: true,
-            emptyText: 'Filter by release...',
-            context: this.getContext(),
-            defaultToCurrentTimebox: false,
-            defaultSelectionPosition: null,
-            listeners: {
-                ready: this._onReleaseAvailable,
-                select: this._onReleaseChanged,
-                scope: this
-            }
-        });
-    }, //end launch
-    
-    _onReleaseAvailable: function(combo) {
-        combo.getStore().getAt(0).set('formattedName', '-- Ignore Release Filter --');
-        this._boxcontainer.add(this._releaseCombobox); //new
-        this._addPICombobox();
-    },
-    
-    _onReleaseChanged: function() {
-        // if we don't yet have a PI combo box or if this is anything other than
-        // the lowest level PI, bail
-        if ( this._piCombobox ) {
-            console.log("resetting filter");
-            if (this._piCombobox.getRecord().get('Ordinal') === 0)
-            {
-                var grid = this.down('rallygrid'),
-                store = grid.getStore(),
-                filter = this._getReleaseFilter();
-        
-                store.clearFilter(filter.length > 0);
-                if(filter.length) {
-                  store.filter(this._getReleaseFilter());
-                }
-            }
-        }
-    },
-    
-    _addPICombobox: function() {
-        var app = this;
+        this._grid = null;
         this._piCombobox = this.add({
             xtype: "rallyportfolioitemtypecombobox",
             padding: 5,
             listeners: {
-                ready: this._onPICombobox,
+                //ready: this._onPICombobox,
                 select: this._onPICombobox,
                 scope: this
             }
         });
-        this._boxcontainer.add(this._piCombobox); //new
-        this._checkbox = this.add({
-            xtype: 'rallycheckboxfield',
-            fieldLabel: 'Show Values After the Decimal',
-            labelWidth: 200,
-            padding: '5, 5, 5, 10',
-            stateful: true,
-            stateId: this.getContext().getScopedStateId('mycheckbox'),
-            stateEvents: ['change'],
-            value: false,
-            listeners: {
-                change: this._onPICombobox,
-                scope: this
-            }
-        });
-         this._myButton = this.add({
-            xtype : 'rallybutton',
-            height : 20,
-            text : 'Export to CSV',
-            listeners : {
-                scope :this,
-                click : function() {
-                    var exporter = Ext.create("GridExporter",{});
-                    exporter.exportGrid(app._myGrid);
-                }
-            }
-        });
-        this._boxcontainer.add(this._checkbox);
-        this._boxcontainer.add(this._myButton);
-        this.add(this._boxcontainer);
-    },
-
-    _onPICombobox: function() {
-        if( this._piCombobox ) {
-            var selectedType = this._piCombobox.getRecord();
-            if (this._piCombobox.getRecord().get('Ordinal') === 0) {
-                // Only use the release filter if the PI is the lowest level
-                // and then ensure it is enabled
-                this._releaseCombobox.enable();
-            } else { // disable the ReleaseComboBox if Feature not selected
-               this._releaseCombobox.disable();
-            }
-        
-            Rally.data.ModelFactory.getModel({
-                type: selectedType.get('TypePath'),
-                success: function(model){
-                    if (this._myGrid === undefined) {
-                        Ext.create("Rally.data.WsapiDataStore", {
-                            model: model,
-                            autoLoad: true,
-                            filters: this._getReleaseFilter(),
-                            remoteSort: false,
-                            listeners: {
-                                load: function(store, records, success) {
-                                    this._calculateScore(records);
-                                    this._updateGrid(store);
-                                },
-                                update: function(store, rec, modified, opts) {
-                                    this._calculateScore([rec]);
-                                },
-                                scope: this
-                            },
-                            fetch: ["Name", "FormattedID", "Release", 
-                                "TimeCriticality", "RROEValue", "UserBusinessValue",
-                                "WSJFScore", "JobSize"]
-                        });
-                    }
-                    else { // grid exists, reset the model to the correct PI type
-                        this._myGrid.reconfigureWithModel(model);
-                        
-                        // clear and re-apply filter since reconfiguring model 
-                        // doesn't do this
-                        var store = this._myGrid.getStore();
-                         if (this._piCombobox.getRecord().get('Ordinal') === 0) {
-                            var filter = this._getReleaseFilter();
-                    
-                            store.clearFilter(filter.length > 0);
-                            if(filter.length) {
-                              store.filter(this._getReleaseFilter());
-                            }
-                        }
-                       
-                        // re-apply grid update listeners
-                        var that = this;
-                        store.addListener('update', function(store, rec, modified, opts) {
-                            that._calculateScore([rec]);
-                        });
-                        store.addListener('load', function(store, records, modified, opts) {
-                            that._calculateScore(records); that._updateGrid(store);
-                        });
-                    }
-                },
-                scope: this
-            });
-        }
     },
     
-    _calculateScore: function(records) {
+    _onPICombobox: function() {
+        console.log("grid: ", this._grid);
+        var selectedType = this._piCombobox.getRecord();
+        var model = selectedType.get('TypePath');
+        
+        if (this._grid !== null) {
+            console.log("destroying grid");
+            this._grid.destroy();
+        }
+
+        Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
+            models: [ model ],
+            listeners: {
+                load: function(store) {
+                    var records = store.getRootNode().childNodes;
+                    console.log("loading");
+                    this._calculateScore(records);
+                },
+                update: function(store, rec, modified, opts) {
+                    console.log("updating");
+                    this._calculateScore([rec]);
+                },
+                scope: this
+            },
+           // autoLoad: true,
+            enableHierarchy: true
+        }).then({
+            success: this._onStoreBuilt,
+            scope: this
+        });
+    },
+    
+    _onStoreBuilt: function(store, records) {
+        //var records = store.getRootNode().childNodes;
+
+        console.log("loading:", records);
+        //this._calculateScore(records);
+  
+        console.log("Store Built");
+        var selectedType = this._piCombobox.getRecord();
+        var modelNames = selectedType.get('TypePath');
+        
+        var context = this.getContext();
+        this._grid = this.add({
+            xtype: 'rallygridboard',
+            context: context,
+            modelNames: [ modelNames ],
+            toggleState: 'grid',
+            stateful: false,
+            plugins: [
+                {
+                    ptype: 'rallygridboardcustomfiltercontrol',
+                    filterChildren: false,
+                    filterControlConfig: {
+                        modelNames: [ modelNames ],
+                        stateful: true,
+                        stateId: context.getScopedStateId('custom-filter-example')
+                    }
+                },
+                {
+                    ptype: 'rallygridboardfieldpicker',
+                    headerPosition: 'left',
+                    modelNames: [ modelNames ],
+                    stateful: true,
+                    stateId: context.getScopedStateId('columns-example')
+                },
+                {
+                    ptype: 'rallygridboardactionsmenu',
+                    menuItems: [
+                        {
+                            text: 'Export...',
+                            handler: function() {
+                                window.location = Rally.ui.grid.GridCsvExport.buildCsvExportUrl(
+                                    this.down('rallygridboard').getGridOrBoard());
+                            },
+                            scope: this
+                        }
+                    ],
+                    buttonConfig: {
+                        iconCls: 'icon-export'
+                    }
+                }
+            ],
+            gridConfig: {
+                store: store,
+                columnCfgs: [
+                    'Name',
+                    'TimeCriticality', 'RROEValue', 'UserBusinessValue', 'JobSize', 
+                    this.getSetting("useExecutiveMandateField")===true ? this.getSetting("ExecutiveMandateField") : null,
+                    {
+                        text: "WSJF Score",
+                        dataIndex: "WSJFScore",
+                        editor: null
+                    }
+                ]
+            },
+            height: this.getHeight()
+        });
+    },
+    
+    _calculateScore: function(records)  {
         var that = this;
+        console.log("Calculate Score");
         Ext.Array.each(records, function(feature) {
-            //console.log("feature", feature.data);
+            console.log("Calc Score Feature: ", feature.data);
             var jobSize = feature.data.JobSize;
-            var timeValue = feature.data.TimeCriticality;
-            var OERR = feature.data.RROEValue;
-            var userValue = feature.data.UserBusinessValue;
-            var oldScore = feature.data.WSJFScore;
-            var isChecked = false;
-            if( that._checkbox) {
-                isChecked = that._checkbox.getValue();
-            }
+            var execMandate = that.getSetting("useExecutiveMandateField")===true ? feature.data[that.getSetting("ExecutiveMandateField")] : 1;
+            execMandate = _.isUndefined(execMandate) || _.isNull(execMandate) || execMandate === 0 ? 1 : execMandate;
+            
+            var timeValue = feature.data[that.TimeCriticalityField];
+            var OERR      = feature.data[that.RROEValueField];
+            var userValue = feature.data[that.UserBusinessValueField];
+            var oldScore  = feature.data[that.WSJFScoreField];
+            var isChecked = that.getSetting("ShowValuesAfterDecimal");
             
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score;
     
                 if( !isChecked ) {
-                    score = Math.floor(((userValue + timeValue + OERR ) / jobSize) + 0.5);
+                    score = ( ((userValue + timeValue + OERR ) * execMandate) / jobSize);
+                    score = Math.round(score);
                 }
                 else {
-                    score = Math.floor(((userValue + timeValue + OERR ) / jobSize) * 100)/100;
+                    score = Math.floor(((userValue + timeValue + OERR ) * execMandate / jobSize) * 100)/100;
                 }
 
                 if (oldScore !== score) { // only update if score changed
@@ -201,57 +158,71 @@ Ext.define('CustomApp', {
         });
     },
     
-    _createGrid: function(myStore) {
-        this._myGrid = Ext.create("Rally.ui.grid.Grid", {
-            xtype: "rallygrid",
-            title: "Feature Scoring Grid",
-            showPagingToolbar: true,
-            pagingToolbarCfg: {
-               pageSizes: [50, 100, 200, 500, 1000]
+    getSettingsFields: function() {
+        var values = [
+            {
+                name: 'ShowValuesAfterDecimal',
+                xtype: 'rallycheckboxfield',
+                label : "Show Values After the Decimal",
+                labelWidth: 200
             },
-            height: "98%",
-            width: "98%",
-            store: myStore,
-            enableBulkEdit: true,
-            enableRanking: true,
-            defaultSortToRank: true,
-            selType: "cellmodel",
-            columnCfgs: [
-                {
-                    text: "Portfolio ID",
-                    dataIndex: "FormattedID",
-                    flex: 1,
-                    xtype: "templatecolumn",
-                    tpl: Ext.create("Rally.ui.renderer.template.FormattedIDTemplate")
-                }, 
-                {
-                    text: "Name",
-                    dataIndex: "Name",
-                    flex: 2
-                }, 
-                "TimeCriticality", "RROEValue", "UserBusinessValue", "JobSize", 
-                {
-                    text: "WSJF Score",
-                    dataIndex: "WSJFScore",
-                    editor: null
-                }
-            ],
-            scope: this
-        }), this.add(this._myGrid);
+            {
+                name: 'useExecutiveMandateField',
+                xtype: 'rallycheckboxfield',
+                label : "Use Custom Executive Mandate Field",
+                labelWidth: 200
+            },
+            {
+                name: 'ExecutiveMandateField',
+                xtype: 'rallytextfield',
+                label : "Executive Mandate Field",
+                labelWidth: 200
+            },
+            {
+                name: 'TimeCriticalityField',
+                xtype: 'rallytextfield',
+                label : "Time Criticality Field",
+                labelWidth: 200
+            },
+            {
+                name: 'RROEValueField',
+                xtype: 'rallytextfield',
+                label : "RROEValue Field",
+                labelWidth: 200
+            },
+            {
+                name: 'UserBusinessValueField',
+                xtype: 'rallytextfield',
+                label : "User Business Value Field",
+                labelWidth: 200
+            },
+            {
+                name: 'WSJFScoreField',
+                xtype: 'rallytextfield',
+                label : "WSJFScore Field",
+                labelWidth: 200
+            },
+            {
+                name: 'JobSizeField',
+                xtype: 'rallytextfield',
+                label : "Job Size Field",
+                labelWidth: 200
+            }
+        ];
+
+        return values;
     },
-    
-    _updateGrid: function(myStore) {
-        if (this._myGrid === undefined) {
-            this._createGrid(myStore);
+
+    config: {
+        defaultSettings : {
+            ShowValuesAfterDecimal: false,
+            useExecutiveMandateField : false,
+            ExecutiveMandateField : 'c_ExecutiveMandate',
+            TimeCriticalityField : 'TimeCriticality',
+            RROEValueField : 'RROEValue',
+            UserBusinessValueField : 'UserBusinessValue',
+            WSJFScoreField : 'WSJFScore',
+            JobSizeField : 'JobSize'
         }
-        else {
-            this._myGrid.reconfigure(myStore);
-        }
-    },
-    
-    _getReleaseFilter: function() {
-        var combo = this.down('rallyreleasecombobox');
-        return combo.getValue() ?
-          [combo.getQueryFromSelected()] : [];
     }
 });
