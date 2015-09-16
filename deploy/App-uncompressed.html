@@ -35,12 +35,10 @@ Ext.define('CustomApp', {
     },
     
     _onPICombobox: function() {
-        console.log("grid: ", this._grid);
         var selectedType = this._piCombobox.getRecord();
         var model = selectedType.get('TypePath');
         
         if (this._grid !== null) {
-            console.log("destroying grid");
             this._grid.destroy();
         }
 
@@ -49,11 +47,9 @@ Ext.define('CustomApp', {
             listeners: {
                 load: function(store) {
                     var records = store.getRootNode().childNodes;
-                    console.log("loading");
                     this._calculateScore(records);
                 },
                 update: function(store, rec, modified, opts) {
-                    console.log("updating");
                     this._calculateScore([rec]);
                 },
                 scope: this
@@ -68,11 +64,7 @@ Ext.define('CustomApp', {
     
     _onStoreBuilt: function(store, records) {
         //var records = store.getRootNode().childNodes;
-
-        console.log("loading:", records);
-        //this._calculateScore(records);
   
-        console.log("Store Built");
         var selectedType = this._piCombobox.getRecord();
         var modelNames = selectedType.get('TypePath');
         
@@ -136,9 +128,8 @@ Ext.define('CustomApp', {
     
     _calculateScore: function(records)  {
         var that = this;
-        console.log("Calculate Score");
+
         Ext.Array.each(records, function(feature) {
-            console.log("Calc Score Feature: ", feature.data);
             var jobSize = feature.data.JobSize;
             var execMandate = that.getSetting("useExecutiveMandateField")===true ? feature.data[that.getSetting("ExecutiveMandateField")] : 1;
             execMandate = _.isUndefined(execMandate) || _.isNull(execMandate) || execMandate === 0 ? 1 : execMandate;
