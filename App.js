@@ -5,7 +5,7 @@ Ext.define('CustomApp', {
     launch: function() {
         var that = this;
 
-        // console.log(that.getSettings());
+        //console.log(that.getSettings());
         that.TimeCriticalityField = that.getSetting('TimeCriticalityField');
         that.RROEValueField = that.getSetting('RROEValueField');
         that.UserBusinessValueField = that.getSetting('UserBusinessValueField');
@@ -55,7 +55,7 @@ Ext.define('CustomApp', {
     
     _onStoreBuilt: function(store, records) {
         //var records = store.getRootNode().childNodes;
-  
+        var that = this;
         var selectedType = this._piCombobox.getRecord();
         var modelNames = selectedType.get('TypePath');
         
@@ -104,11 +104,11 @@ Ext.define('CustomApp', {
                 store: store,
                 columnCfgs: [
                     'Name',
-                    'TimeCriticality', 'RROEValue', 'UserBusinessValue', 'JobSize', 
+                    that.TimeCriticalityField, that.RROEValueField, that.UserBusinessValueField, that.JobSizeField, 
                     this.getSetting("useExecutiveMandateField")===true ? this.getSetting("ExecutiveMandateField") : null,
                     {
                         text: "WSJF Score",
-                        dataIndex: "WSJFScore",
+                        dataIndex: that.WSJFScoreField,
                         editor: null
                     }
                 ]
@@ -121,15 +121,16 @@ Ext.define('CustomApp', {
         var that = this;
 
         Ext.Array.each(records, function(feature) {
-            var jobSize = feature.data.JobSize;
             var execMandate = that.getSetting("useExecutiveMandateField")===true ? feature.data[that.getSetting("ExecutiveMandateField")] : 1;
             execMandate = _.isUndefined(execMandate) || _.isNull(execMandate) || execMandate === 0 ? 1 : execMandate;
             
+            var jobSize   = feature.data[that.JobSizeField];
             var timeValue = feature.data[that.TimeCriticalityField];
             var OERR      = feature.data[that.RROEValueField];
             var userValue = feature.data[that.UserBusinessValueField];
             var oldScore  = feature.data[that.WSJFScoreField];
             var isChecked = that.getSetting("ShowValuesAfterDecimal");
+            //console.log("jobSize: ", jobSize, "execMandate: ", execMandate, "timeValue: ", timeValue, "userValue", userValue);
             
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score;
