@@ -125,12 +125,23 @@ Ext.define('CustomApp', {
             execMandate = _.isUndefined(execMandate) || _.isNull(execMandate) || execMandate === 0 ? 1 : execMandate;
             
             var jobSize   = feature.data[that.JobSizeField];
+            jobSize = _.isUndefined(jobSize) || _.isNull(jobSize) ? 0 : jobSize;
+            
             var timeValue = feature.data[that.TimeCriticalityField];
+            timeValue = _.isUndefined(timeValue) || _.isNull(timeValue) ? 0 : timeValue;
+            
             var OERR      = feature.data[that.RROEValueField];
+            OERR = _.isUndefined(OERR) || _.isNull(OERR) ? 0 : OERR;
+            
             var userValue = feature.data[that.UserBusinessValueField];
+            userValue = _.isUndefined(userValue) || _.isNull(userValue) ? 0 : userValue;
+            
             var oldScore  = feature.data[that.WSJFScoreField];
+            oldScore = _.isUndefined(oldScore) || _.isNull(oldScore) ? 0 : oldScore;
+            
             var isChecked = that.getSetting("ShowValuesAfterDecimal");
-            //console.log("jobSize: ", jobSize, "execMandate: ", execMandate, "timeValue: ", timeValue, "userValue", userValue);
+            console.log("jobSize: ", jobSize, "execMandate: ", execMandate, 
+            "timeValue: ", timeValue, "userValue", userValue, "oldScore", oldScore);
             
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score;
@@ -142,9 +153,9 @@ Ext.define('CustomApp', {
                 else {
                     score = Math.floor(((userValue + timeValue + OERR ) * execMandate / jobSize) * 100)/100;
                 }
-
+console.log("Calculated Score ", score);
                 if (oldScore !== score) { // only update if score changed
-                    feature.set('WSJFScore', score); // set score value in db
+                    feature.set(that.WSJFScoreField, score); // set score value in db
                 }
             }
         });
