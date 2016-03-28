@@ -38,10 +38,10 @@ Ext.define('CustomApp', {
             listeners: {
                 load: function(store) {
                     var records = store.getRootNode().childNodes;
-                    this._calculateScore(records);
+                    this._calculateScore(records, true);
                 },
                 update: function(store, rec, modified, opts) {
-                    this._calculateScore([rec]);
+                    this._calculateScore([rec], false);
                 },
                 scope: this
             },
@@ -117,7 +117,7 @@ Ext.define('CustomApp', {
         });
     },
     
-    _calculateScore: function(records)  {
+    _calculateScore: function(records,loading)  {
         var that = this;
 
         Ext.Array.each(records, function(feature) {
@@ -140,8 +140,8 @@ Ext.define('CustomApp', {
             oldScore = _.isUndefined(oldScore) || _.isNull(oldScore) ? 0 : oldScore;
             
             var isChecked = that.getSetting("ShowValuesAfterDecimal");
-            console.log("jobSize: ", jobSize, "execMandate: ", execMandate, 
-            "timeValue: ", timeValue, "userValue", userValue, "oldScore", oldScore);
+            //console.log("jobSize: ", jobSize, "execMandate: ", execMandate, 
+            //"timeValue: ", timeValue, "userValue", userValue, "oldScore", oldScore);
             
             if (jobSize > 0) { // jobSize is the denominator so make sure it's not 0
                 var score;
@@ -153,9 +153,15 @@ Ext.define('CustomApp', {
                 else {
                     score = Math.floor(((userValue + timeValue + OERR ) * execMandate / jobSize) * 100)/100;
                 }
-console.log("Calculated Score ", score);
+                //console.log(feature.data.Name," Calculated Score ", score, "Old Score: ", oldScore);
                 if (oldScore !== score) { // only update if score changed
-                    feature.set(that.WSJFScoreField, score); // set score value in db
+                    feature.set(that.WSJFScoreField, score);
+                    if( loading ) {
+                        // This ensures that if this is the first time this item
+                        // is loaded into the grid, the calculation will be 
+                        // saved in the db.
+                        feature.save();
+                    }
                 }
             }
         });
