@@ -68,12 +68,19 @@ Ext.define('CustomApp', {
             stateful: false,
             plugins: [
                 {
-                    ptype: 'rallygridboardcustomfiltercontrol',
+                    ptype: 'rallygridboardinlinefiltercontrol',
                     filterChildren: false,
-                    filterControlConfig: {
+                    inlineFilterButtonConfig: {
                         modelNames: [ modelNames ],
                         stateful: true,
-                        stateId: context.getScopedStateId('custom-filter-example')
+                        stateId: context.getScopedStateId('custom-filter-example'),
+                        inlineFilterPanelConfig: {
+                            quickFilterPanelConfig: {
+                                defaultFields: [
+                                    'ArtifactSearch'
+                                ]
+                            }
+                        }
                     }
                 },
                 {
