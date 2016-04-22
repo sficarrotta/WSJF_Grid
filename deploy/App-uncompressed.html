@@ -3,7 +3,7 @@
 <head>
     <title>wsjf_grid</title>
 
-    <script type="text/javascript" src="/apps/2.0/sdk.js"></script>
+    <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
 
     <script type="text/javascript">
         Rally.onReady(function () {
@@ -77,12 +77,19 @@ Ext.define('CustomApp', {
             stateful: false,
             plugins: [
                 {
-                    ptype: 'rallygridboardcustomfiltercontrol',
+                    ptype: 'rallygridboardinlinefiltercontrol',
                     filterChildren: false,
-                    filterControlConfig: {
+                    inlineFilterButtonConfig: {
                         modelNames: [ modelNames ],
                         stateful: true,
-                        stateId: context.getScopedStateId('custom-filter-example')
+                        stateId: context.getScopedStateId('custom-filter-example'),
+                        inlineFilterPanelConfig: {
+                            quickFilterPanelConfig: {
+                                defaultFields: [
+                                    'ArtifactSearch'
+                                ]
+                            }
+                        }
                     }
                 },
                 {
