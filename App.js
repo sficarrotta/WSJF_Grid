@@ -1,4 +1,6 @@
 var Ext = window.Ext4 || window.Ext;
+/* global _*/
+/* global Rally */
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
@@ -96,8 +98,11 @@ Ext.define('CustomApp', {
                         {
                             text: 'Export...',
                             handler: function() {
-                                window.location = Rally.ui.grid.GridCsvExport.buildCsvExportUrl(
-                                    this.down('rallygridboard').getGridOrBoard());
+                                window.location = 
+                                    Rally.ui.gridboard.Export.buildCsvExportUrl(this.down('rallygridboard').getGridOrBoard());
+ 
+
+
                             },
                             scope: this
                         }

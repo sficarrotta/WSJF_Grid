@@ -37,7 +37,12 @@
             }
         }
     },
+    "php": {
+        "@completion": true,
+        "@path": ".:./vendor"
+    },
     "python": {
+        "@completion": true,
         "@path": "/usr/local/lib/python2.7/dist-packages:/usr/local/lib/python3.4/dist-packages:/usr/local/lib/python3.5/dist-packages",
         "@version": "python2"
     },
