@@ -80,7 +80,17 @@ Ext.define('CustomApp', {
                             quickFilterPanelConfig: {
                                 defaultFields: [
                                     'ArtifactSearch'
-                                ]
+                                ],
+                                addQuickFilterConfig: {
+                                    whiteListFields: ['Milestones', 'Tags']
+                                }
+                            },
+                            advancedFilterPanelConfig: {
+                                advancedFilterRowsConfig: {
+                                    propertyFieldConfig: {
+                                        whiteListFields: ['Milestones', 'Tags']
+                                    }
+                                }
                             }
                         }
                     }
